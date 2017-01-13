@@ -1,0 +1,9 @@
+#!/bin/bash
+
+ps -aelf |grep face_m_picam.py | grep -v grep | awk '{print $4}' | xargs kill -9;
+ps -aelf |grep face_m_picam.py | grep -v grep | awk '{print $4}' | xargs kill -9;
+
+# ps -ef |grep face_m_picam.py | grep -v grep | awk '{print $2}' | xargs kill -SIGINT;
+ps -aelf | grep car.py | grep -v grep | awk '{print $4}' | xargs kill -9;
+ps -aelf | grep hytersis_fre.py | grep -v grep | awk '{print $4}' | xargs kill -9;
+python stop_motors.py

@@ -1,0 +1,9 @@
+#!/bin/bash
+sudo pigpiod
+python car.py &
+echo 'Main program started.'
+python face_m_picam.py &
+echo 'Camera started.'
+python hytersis_fre.py &
+echo 'Sound detection started.'
+
