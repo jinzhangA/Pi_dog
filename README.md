@@ -1,2 +1,1 @@
-# Pi_dog
-[webpage]:https://jinzhanga.github.io/
+https://jinzhanga.github.io/
