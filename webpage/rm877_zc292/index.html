@@ -1,0 +1,1070 @@
+<!--
+This template belongs to Gautham Ponnu
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+	<title>ECE 5725 | Robot Dog </title>
+	<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+
+	<meta name="keywords" content="Gautham Ponnu, awesome, project" />
+	<meta name="description" content="This webpage is gp348 awesome project report for ECE 5990 at Cornell University" />
+	<link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/2.7.0/build/reset-fonts-grids/reset-fonts-grids.css" media="all" />
+	<link rel="stylesheet" href="CSS/project.css">
+	<link rel="stylesheet" href="CSS/report.css">
+</head>
+<body>
+
+<div id="doc2" class="yui-t7">
+	<div id="inner">
+		<div id="hd">
+			<div class="yui-gc">
+				<div class="yui-u first">
+					<h1>ECE 5725 Final Project<br>Robot Dog</h1>
+					<h2>Zhuo Chen zc292, Rui Min rm877</h2>
+					<h2>Dec. 2016</h2>
+				</div>
+
+			</div><!--// .yui-gc -->
+		</div><!--// hd -->
+
+		<div id="bd"> <!--// Main Body begins here -->
+			<div id="yui-main">
+				<div class="yui-b">
+
+
+						<div class="yui-gf"> <!--// This is a section -->
+							<div class="yui-u first">
+								<h2>Introduction</h2> <!--// put your heading here -->
+							</div>
+							<div class="yui-u">
+								<iframe width="560" height="315" src="https://www.youtube.com/embed/01CcJacltTQ" style="border:0;" allowfullscreen></iframe>
+								<p>In this project, we have built a robot dog based on Raspberry Pi. First, this little dog can find your face and follow your steps. This function is mainly achieved by detecting the user’s face and use the position and size information to control the motors. Second, this dog can recognize a “go” command which is a person’s “go” word and a “stop command” which is the sound of a whistle and make the corresponding response. This is achieved by detecting the sound with zero crossing frequency detection.  Third, this dog can make various sounds when it cannot find the face, or reply to “go” and “stop” command.<br>
+								</p> <!--// Put Content here -->
+								<figure>
+								  <img class="fig" src="images/figure15.jpeg" alt="figure15" width="500" height="300">
+								  <figcaption>Diagram: System Structure</figcaption>
+								</figure>
+							</div>
+						</div><!--// Your section has ended -->
+
+						<div class="yui-gf"> <!--// This is another section -->
+							<div class="yui-u first">
+								<h2>Objective</h2> <!--// put your heading here -->
+							</div>
+							<div class="yui-u">
+								<p> Build a robot dog with following functions:<br>
+									[1] Face detection<br>
+									[2] Move and track user's face<br>
+									[3] Simple voice recognition of two commands<br>
+									[4] Make sound response
+								</p> <!--// Put Content here -->
+							</div>
+						</div><!--// Your section has ended -->
+
+						<div class="yui-gf"> <!--// This is a section -->
+							<div class="yui-u first">
+								<h2>Design & Testing</h2> <!--// put your heading here -->
+							</div>
+							<div class="yui-u">
+								<h3>System Setup</h3>
+								<br>
+								<h4><b>1. Pi Camera and mount</b></h4>
+								<figure>
+								  <img class="fig" src="images/figure12.png" alt="figure12" width="350" height="500">
+								  <figcaption>Figure 1 Pi Camera and the mount</figcaption>
+								</figure>
+								<p><br>In the final system setup, we use the Pi Camera and a mount we bought from Amazon. The Pi Camera is connected to Pi via the dedicated connector. After turning on the enable camera option in the configuration and reboot, the Pi camera was ready to use.<br>
+								The official user manual suggests that the mount should be plug into the USB of the Raspberry Pi. However, the camera will shake together with the Pi when the robot dog moves. The Pi is mounted on the robot frame with VELCRO tape, not stable enough for the camera. As the camera shakes, the image will be blurred, leading to a low performance of the face detector. Thus, we fixed the mount on base of the robot frame and the performance of the face detection has been improved.<br><br></p>
+								<h4><b>2. Microphone</b></h4>
+								<figure>
+								  <img class="fig" src="images/figure13.png" alt="figure13" width="250" height="400">
+								  <figcaption>Figure 2 USB microphone</figcaption>
+								</figure>
+								<p><br>The installation of the Microphone is as simple as plugging it into the USB.<br><br></p>
+								<h4><b>3. Robot frame</b></h4>
+								<p><br>The robot frame used for this project is same one we used in Lab 3. For detailed installation procedure, please refer to the Lab 3 Instruction Note[6].<br><br></p>
+								<h4><b>4. Installation of OpenCV</b></h4>
+								<p><br>We followed Adrian Rosebrock’s tutorial to install OpenCV 3.1.0 on the system [7]. The installing process can be summarized as downloading source code, installing dependency, compile and install. One thing to point out is that we did not install the OpenCV in a python virtual environment. Python virtual environment is a useful tool to isolate developing environment. However, we use this Raspberry Pi dedicatedly for this project. Thus there’s no need to install the OpenCV in a python virtual environment.<br><br></p>
+								<h4><b>5. Installation of pyAudio</b></h4>
+								<p>
+									<br>We followed an online tutorial to install pyAudio on the system [8] as:<br><br>
+									<b>$ sudo apt-get install git<br>
+									$ git clone http://people.csail.mit.edu/hubert/git/pyaudio.git<br>
+									$ sudo apt-get install libportaudio0 libportaudio2 libportaudiocpp0 portaudio19-dev<br>
+									$ sudo apt-get python-dev<br>
+									$ sudo python pyaudio/setup.py install</b><br><br>
+								</p>
+								<h4><b>6. Motors</b></h4>
+								<figure>
+								  <img class="fig" src="images/figure14.png" alt="figure14" width="400" height="200">
+								  <figcaption>Figure 3 Connection of the servo motor [3]</figcaption>
+								</figure>
+								<p><br>We use two servo motors for the two wheels. They are connected to Pi via Pin 20 and 21 (BCM number). These motors are powered with dedicated batteries with a separate power switch. The ground is shared with Pi as Figure 3 shows. <br><br></p>
+								<h3>Face Detection</h3>
+								<br>
+								<h4><b>1. Face Detector</b></h4>
+								<p>
+									<br>The face detection function is mainly achieved by the face detector module of OpenCV. There are generally two algorithms for this purpose. Namely Haar Cascade and Local Binary Patterns (LBP). Haar Cascade is used for this project because it has a higher detection accuracy. LBP has a faster processing speed but less accuracy. A faster algorithm means we can process more frames in a unit time, resulting a faster frame rate. However, the frame rate requirement is not very high for this project. Detect a face in the frame accurately is more important for this project. Thus, Haar Cascade is finally chosen. <br>
+									A face detector instance can be setup by code[5]:<br><br>
+									<b>facedetector = cv2.CascadeClassifier(cascade_path)</b><br>
+									<br>where the cascade_path is the file path of the face cascade xml file. A grey scale image will be passed into the detector and the position, width and height will be returned. The center of the face can be determined with this information.<br><br>
+								</p>
+								<h4><b>2. Frame Capturing</b></h4>
+									<p><br>
+									The face detection function will serve as the navigator of the system.  The position of the user will be detected in the camera frame and relative position will be returned. The robot will move regarding this relative position.<br>
+									During the first phase of development, the camera used is the Logitech C525 USB webcam. However, the frame rate is only about 7 fps, which means this system could only process 5 frames per second and return the relative positions. This could be adequate for navigation purpose. However, there is a lag around 1s as Figure 4 shows, this will affect the navigation fatally. The latency was measured by comparing the taking a picture of the stop watch directly and together with the image preview of the processed frame.<br><br><p>
+									<figure>
+									  <img class="fig" src="images/figure1.png" alt="figure1" width="400" height="140">
+									  <figcaption>Figure 4 Measurement of single process frame rate using USB webcam</figcaption>
+									</figure>
+									<figure>
+									  <img class="fig" src="images/figure2.png" alt="figure2" width="500" height="400">
+									  <figcaption>Figure 5 Measurement of the lag of USB webcam</figcaption>
+									</figure>
+									<p><br>As one of the TA, Jingyao suggest, we can make use the 4 cores of the Raspberry Pi 3 to process the frames in parallel. The latency may be reduced by a faster processing speed.<br><br></p>
+									<figure>
+									  <img class="fig" src="images/figure3.png" alt="figure3" width="400" height="120">
+									  <figcaption>Figure 6 Measurement of 4 processes frame rate using USB webcam</figcaption>
+									</figure>
+									<p><br>The program then edited to work with multi processes. The frame rate was increased to around 9 fps, which is 2 fps faster than single process version. However, the latency was getting worse with multi processes as Figure 7 shows. The latency was increased to 4s, it may cause by the overhead introduced by the multi processes.<br><br></p>
+									<figure>
+									  <img class="fig" src="images/figure4.png" alt="figure4" width="500" height="400">
+									  <figcaption>Figure 7 Measurement of the latency of 4 processes version</figcaption>
+									</figure>
+									<p><br>The tests above indicated that the latency was cause by the procedures before detecting the faces in the frames, which leaves the image capturing process most suspicious. Besides USB webcam, the most popular camera solution on Raspberry Pi platform is the Pi Camera, which is designed dedicated for Raspberry Pis. The Pi camera is connected with the Pi with a dedicated connector, this may lead to a faster operation speed.<br><br/></p>
+									<figure>
+									  <img class="fig" src="images/figure5.png" alt="figure5" width="400" height="150">
+									  <figcaption>Figure 8 Frame rate of using multi processes with Picam</figcaption>
+									</figure>
+									<figure>
+									  <img class="fig" src="images/figure6.png" alt="figure6" width="300" height="400">
+									  <figcaption>Figure 9 Delay of using Pi camera</figcaption>
+									</figure>
+									<p><br>After switching to Pi camera, there was no improvement on frame rate. However, the delay was almost eliminated. The delay now is around 0.3s, which could be enough for tracking slow movement of the face.<br><br></p>
+								<h4><b>3. Position interpretation</b></h4>
+									<p><br>The relative position between the robot and user is read by the camera. Two ways of interpretation the position signal were tested during the development.<br>
+									If the user stand straight and look down at the robot, the position can be simply interoperated x and y value.<br><br></p>
+									<figure>
+									  <img class="fig" src="images/figure7.jpeg" alt="figure7" width="400" height="150">
+									  <figcaption>Figure 10 Illustration of x direction</figcaption>
+									</figure>
+									<figure>
+									  <img class="fig" src="images/figure8.jpeg" alt="figure8" width="400" height="150">
+									  <figcaption>Figure 11 Illustration of y direction</figcaption>
+									</figure>
+									<p><br>However, during the development, some problems occurred with this method. First, moving towards and backwards to the robot did not lead to much change in y direction. This can be solved by adjusting the gain when translating the error signal to movement adjustment signal. A more serious problem with this method is that, when the user stand straight, the size of the face in the frame will be small. A small face size will lead to a degrade accuracy and more computing time. Besides, as the camera is tilting towards the light on the ceiling. If there is high intensive light source in the image, the Pi camera will lower the exposure rate, leading to a dark image and the face cannot be found by the face detection algorithm. We have tried to turn off the auto exposure adjustment, but it is hard find a good manual value for this application. During the testing, the system frequently report failed to detect the face.<br> 
+
+									Instead of using the y axis value, another method we proposed to represent the distance of the face to the camera is the size of the detected face. <br>
+
+									After obtain the position of the face in the frame, an error signal will be generated to control the motor. The x-axis error is the deviation of the detected face positon from 0, which is the central position. The size error is the deviation of the detected face size from 55, which was selected after testing a set of values. If the central size is too small, the robot will stop too far away from the user. Also, this will make the user’s face hard to be detected by the face detector. If the central value is too large, the robot will stop close to the user. However, during the testing it was found that when the robot stop too close to the user, the face would be out of the frame. 55 was the best value found.<br>
+
+									This method was tested and the system showed a right response to the change of the face position. <br><br></p>
+									<figure>
+									  <img class="fig" src="images/figure9.jpeg" alt="figure9" width="600" height="250">
+									  <figcaption>Figure 12 Testing of the position interpretation (x-axis)</figcaption>
+									</figure>
+									<p><br>Figure 12 is the testing result of the position interpretation function. When the tester’s face in the left or right side of the frame, the error message was changed regarding to the position. <br><br></p>
+									<figure>
+									  <img class="fig" src="images/figure10.png" alt="figure10" width="400" height="300">
+									  <figcaption>Figure 13 Testing of the position interpretation (size)</figcaption>
+									</figure>
+									<p><br>Comparing with Figure 12, the tester’s face was closer to the camera. The size error changed for around 70 to around 110, which was same as expected.<br><br></p>
+								<h4><b>4. Sending the error signal</b></h4>
+									<p><br>The error signal need to be send to the main program of the system to control the wheels. The signal is send with a UDP socket. In the later section, it will be mentioned that the system involved two functions need to send instruction to the main program. Instead setting up another socket, the two set of instruction are differentiated by a ‘name tag’. The structure of the signal is:<br><br></p>
+									<figure>
+									  <img class="fig" src="images/code1.jpeg" alt="code1" width="600" height="30">
+									</figure>
+									<p><br>The first element of the signal tuple is the name tag, which indicate this is the error signal. The second element is the error signal itself, which is a tuple containing the x-axis error and the size error. If no face was found, the error signal will be (None, None). The message is serialized with python pickle before sending.<br>
+									This part of design refers to ‘face_m_picam.py’ code.<br><br></p>
+								<h3>Movement control</h3>
+								<br>
+								<h4><b>1. Motor control model</b></h4>
+									<p><br>In Lab 3, our group has already implemented the motor controller class. The class used for this project was an edited version of the Lab 3 code. According to the servo datasheet[3], “As the length of the pulse decreases from 1.5 ms, the servo will gradually rotate faster in the clockwise direction” and “Likewise, as the length of the pulse increases from 1.5 ms, the servo will gradually rotate faster in the counter-clockwise direction”. The length of period is base pulse(1.5ms) plus the adjusted pulse. The range of pulse is from 1.3ms to 1.7ms and we have 21 stages ([-10, 10]).<br><br></p>
+									<figure>
+									  <img class="fig" src="images/fomula2.jpeg" alt="fomula2" width="230" height="120">
+									</figure>
+									<p><br>where L_pulse is the calculated pulse width regarding to the speed stage.
+									This set of code has been tested during Lab 3. However, when it was running with the Face recognition code, the wheels started to shaking, even the speed given was 0. In Lab 3, the motors were driven by PWM model for RPI.GPIO, which is a software PWM. When this program running with other processes, the control of PWM wave may be delayed and loss accuracy, leading to the shaking wheels. The course instructor suggested us using pigpio model, which is already built-in the Raspberry Pi. There are two options using PWM with pigpio. The first one is using the hardware PWM model. There are 2 hardware PWM models on Raspberry Pi 3, which can be accessed via pin 13 and 18 (BCM number) with code [4]:<br><br>
+									<b>hardware_PWM(gpio, PWMfreq, PWMduty)</b>
+									<br><br>However, as it was mentioned in the lecture, using the two hardware PWM models will have conflict with the audio out function of the Raspberry Pi. Instead of using the hardware PWM models on Raspberry Pi, we used the hardware timed PWM, which is accessible from all the GPIOs. This method involved the DMA model on the Raspberry Pi and the performance will not be affected by the CPU workload as the software PWM. <br><br></p>
+									<figure>
+									  <img class="fig" src="images/code2.png" alt="code2" width="400" height="80">
+									</figure>
+									<p><br>The first line connected to the pigpio demon, which should be started in the terminal before running any pigpio involved program with command:<br><br>
+									<b>sudo pigpiod</b>
+									<br><br>The second line changed the default range of a full PWM cycle from 255 to 10000 to increase the control precision. For example, now a 10% duty cycle is 1000 rather than 26. The last two lines change the frequency and duty cycle to the expected values.<br>
+									After switching to pigpio library, the two wheels now have a stable performance.<br><br></p>
+								<h4><b>2. Converting error signal to motor control signal</b></h4>
+									<p><br>Making the wheels to move with the face movement in x-axis (refer to Figure 10) can be achieved by controlling the wheels move at different direction (forward/backward) with a certain speed.<br>
+									At first, we designed a schema that the speed of the wheels should be proportional to the error signal value as:<br><br></p>
+									<figure>
+									  <img class="fig" src="images/fomula3.jpeg" alt="fomula3" width="450" height="20">
+									</figure>
+									<p><br>However, if the gain is too high, the control process would overshoot. The frame rate of the face detection process is not high enough to counter with the fast change frames. As we only expect the system to track low speed moving face, we simplify the x-axis control schema to:<br><br></p>
+									<figure>
+									  <img class="fig" src="images/code3.png" alt="code3" width="400" height="140">
+									</figure>
+									<p><br>The new schema was tested and has a satisfying result. <br>
+									For y-axis with size as error signal, the proportional control worked fine. The control signal for x-axis and y-axis If there is no face detected and the error signal is (None, None), the system will simply sit still.<br>
+									This part of design refers to motor_control_pigpio.py, wheel.py, car.py.<br><br></p>
+
+
+								<h3>Voice Recognition</h3>
+								<p><br>The zero-crossing rate is the rate of sign-changes along a signal, i.e., the rate at which the signal changes from positive to negative or back.[1] This feature has been used heavily in both speech recognition and music information retrieval, being a key feature to classify percussive sounds.[1] <br>
+								ZCR is defined formally as<br></p>
+									<figure>
+									  <img class="fig" src="images/fomula1.jpeg" title="zero crossing fomula" alt="zero crossing fomula" width="240" height="80">
+									</figure>
+								<br>
+								<p>Where s is a signal of length T and 1R is an indicator function.<br>
+								In this project, we use a zero crossing method to calculate the fundamental frequency of a voice.[2]<br>
+								Since all we needed to do was distinguish two different voices, we used a voice of low frequency and a voice of high frequency in order to have a high level of accuracy. In this project, we used a voice of word "Go" whose fundamental frequency was below 500 Hz to give a move command and a voice of whistle whose fundamental frequency was above 2000 Hz to give a stop command. <br>
+								In our voice recognition program, we had two thresholds. If the fundamental frequency of the voice was higher than 2000 Hz, we treated the voice as a voice of whistle and sent a stop command through socket. If the frequency was less than 500 Hz, we sent a move command through socket.<br>
+								One thing we need to point out is that the zero crossing method is easily affected by the noise which means that sometimes the robot will mistakenly recognize the noise, for instance, the voice produced by itself (the robot plays a audio of dog barking when it receives a command ) or the voice by other people. As a result, it needs a relatively testing environment and the amplituderesponse audio played by itself must be low.<br>
+								Before we tested the voice recognition program on the Pi, we first tested the voice recognition on our own computer, using the internal microphone of your PC. And before we tested the program using a real sound, we first tested it by using specific sin waveforms produced by a waveform generator. In this part, the voice recognition works well, the difference between the recognition value and the real value was less than 30 Hz if the amplitude was large enough. <br>
+								Then we put the voice recognition program onto the Pi and tested on Pi. In this part, several problems occurred. The first one was that we needed to do some configurations on the Pi for some specific libraries we used in the voice recognition program. <br> 
+								The second problem we faced with was that there was a frame overflow in the Pi. The cause of this problem was that the original frame size (1024 points) we set before was too small. In order to solve this, we increased the frame size to 8192.<br>
+								The third problem we found was that when power source of the microphone was low, there would be a degradation of performance. After we recharged the power bank, the microphone recovered to its normal performance.<br>
+								The fourth bug of the voice recognition was that if our voice had a length which was longer than one recognition period we set, the recognition program would send repeated commands. The solution of this was that every time we sent a command, we stored the timestamp. Next time we plan to send a command, we checked the time interval between the current timestamp and the last time stamp. If the interval was larger than 3 seconds, we treated the current recognition as a new one and sent the command. If it is less than 3 seconds, we ignored it.  
+								The fifth point was that since the zero crossing recognition method is a method using an accumulation value, when we recognized a frequency which was below the low threshold, there are two possibilities. One possibility was that this frequency represented a low frequency command and the other  one was that it was a signal before a high frequency signal which displayed the beginning of the accumulating process of a high frequency signal.  In order to distinguish these two possibilities, after we recognized a low frequency command, we continuously checked the recognized signal after it. If the two signals after it were high, we thought it was the second possibility two and sent the stop command. If not, we could ensure that this was a low frequency command and we sent the go command.<br>
+								The last problem was that the response voice to the command played by the robot  would become a noise and sometimes the robot would mistakenly treated the response sound as a command. Since the voice recognition highly affected by the amplitude of the sound, we decreased the loudness of the response voice to a level which would not influence the normal recognition. <br>
+								After solving these problems mentioned above, we had a good performance of voice recognition in a reasonable distance ranging from 0 to about 4 meters.<br>
+								The testing results of this module is shown in Figure 14:<br><br>
+								</p>
+								<figure>
+								  <img class="fig" src="images/figure11.png" alt="figure11" width="400" height="100">
+								  <figcaption>Figure 14 Testing result of sound command</figcaption>
+								</figure>
+								<p><br>The system responded corrected to the sound commands we generated. Also, the system only responded to one command within 3 seconds as we expected.<br>
+								This part of design refers to hytersis_fre.py.<br><br>
+								</p>
+
+								<h3>Main program</h3>
+								<br>
+								<h4><b>1. Receiving signals</b></h4>
+								<p>
+									<br>The main program performs as a UDP socket server to receive signals from face and frequency detection modules. The received signal will first be de-serialized with python pickle. Then signal will be processed as the error or command signal indicated by the first element of the tuple. The structure of the tuple could be:<br><br>
+									<b>(‘error’, error) or (‘command’, command)</b><br><br>
+								</p>
+								<h4><b>2. Sound Command</b></h4>
+								<p>
+									<br>As there are only two commands involved, ‘go’(move) and ‘stop’, a Boolean flag will be controlled by these two commands.<br><br>
+								</p>
+								<figure>
+								  <img class="fig" src="images/code4.png" alt="code4" width="400" height="110">
+								</figure>
+								<p>
+								<br>The sound playback function used in this project is PyGame mixer. It is initialized with:<br><br>
+								<b>pygame.mixer.init()</b><br><br>
+								and playing the sound with:<br><br>
+								<b>pygame.mixer.music.load("sound_file")</b><br>
+								<b>pygame.mixer.music.play()</b><br>
+								<br>The sound files used for this project was downloaded from following sources:<br>
+								Not find face: <br>
+								http://www.wavsource.com/snds_2016-11-20_5768273412148964/animals/dog_whine_duke.wav<br>
+								Go: <br>
+								http://www.wavsource.com/snds_2016-11-20_5768273412148964/animals/dog_bark4.wav<br>
+								Stop: <br>
+								http://www.wavsource.com/snds_2016-11-20_5768273412148964/animals/dog_puppy.wav<br><br>
+								</p>
+
+								<h4><b>3. Movement control with command</b></h4>
+								<br>
+								<figure>
+								  <img class="fig" src="images/code5.png" alt="code5" width="600" height="100">
+								</figure>
+								<p>
+									<br>The movement control will be affected by the ‘move’ flag. The robot will only move when the flag is true. Also, if no face is detected by the face detection program, the robot will not move.<br>
+									The part refers to car.py code.<br><br>
+								</p>
+
+								<h3>Start and stop script</h3>
+								<p>
+									<br>There are 3 programs involved in this project. A script has been generated to start those 3 programs. Besides, to ensure the pigpio demon starting before running any gpio involved code, the script will start the pigpio demon at the beginning.<br>
+									The system will keep running unless all the three programs stopped. To stop all the 3 programs, a stop script has been generated. First, the PIDs of the involved processes will be found then kill commands will be sent to each of them. As the motors are controlled by the pgpiod, if the last sent instruction for the programs is not stop, the motors will keep running even the programs has been stopped. Instead of turnning off the gpiod, we wrote a simple python code to send stop command to the gpiod at the end of the script.<br> 
+									This part refers to start, stop and stop_motors.py.<br><br>
+								</p>
+
+								<h3>System Testing</h3>
+								<p>
+									<br>For the final testing, we used an iPhone to setup a mobile hotspot and using SSH to connect the Raspberry Pi wirelessly. As the testing of the final system is hard to be demonstrated with data or graphs, the demo video can be served as a good testing process of the system.<br>
+
+								</p>
+
+							</div>
+						</div><!--// Your section has ended -->
+
+						<div class="yui-gf"> <!--// This is a section -->
+							<div class="yui-u first">
+								<h2>Results</h2> <!--// put your heading here -->
+							</div>
+							<div class="yui-u">
+								<p>The face detection has a decent performance when we changed to detected the distance by face size. The system function well when the tester moved slowly. However, the robot dog will lose track of the face if the tester move rapidly. <br>
+								The frequency detection module function as we expected when we say ‘go’ or blow the whistle. However, the ‘go’ command sometimes get messed with the surrounding noise as the noise may contain a frequency component which can trigger the frequency detection. The whistle detection worked well as the frequency of the whistle is much higher than the noise.<br>
+								All the sound has been played correctly with regard to the situation. However, when the volume is high, the ‘dog bark’ may trigger the ‘go’ command. We have to lower the volume of the speaker.<br>
+								The robot dog can follow the slow-moving tester and respond to the sound command most of the time.
+
+								</p> <!--// Put Content here -->
+							</div>
+						</div><!--// Your section has ended -->
+
+						<div class="yui-gf"> <!--// This is a section -->
+							<div class="yui-u first">
+								<h2>Conclusion</h2> <!--// put your heading here -->
+							</div>
+							<div class="yui-u">
+								<p>All the planned work and proposed functions has been finished at the end of the project and all the function has been proved to be functional. 
+								</p> <!--// Put Content here -->
+							</div>
+						</div><!--// Your section has ended -->
+
+						<div class="yui-gf"> <!--// This is a section -->
+							<div class="yui-u first">
+								<h2>Future work</h2> <!--// put your heading here -->
+							</div>
+							<div class="yui-u">
+								<p>The current system using python version of the OpenCV which has lower efficiency. If switch to C++ version, the system should have a better performance. Also, the Cascade kernel used in this project is a trained version for front face. The robot is put on the ground and the user looks down at the robot. Retrain the kernel with this certain relative position may improve the performance of the system.<br>
+								For the sound recognition part, this system suffers from the low quality of the USB microphone and varies distance. A handheld commander would solve the problem. Also, as the accuracy of the frequency improved, more commands can be added to the system and it would be more interesting.
+								</p> <!--// Put Content here -->
+							</div>
+						</div><!--// Your section has ended -->
+
+						<div class="yui-gf"> <!--// This is a section -->
+							<div class="yui-u first">
+								<h2>Part List</h2> <!--// put your heading here -->
+							</div>
+							<div class="yui-u">
+							<table class="tg" style="undefined;table-layout: fixed; width: 445px">
+							<colgroup>
+							<col style="width: 158px">
+							<col style="width: 117px">
+							<col style="width: 85px">
+							<col style="width: 85px">
+							</colgroup>
+							  <tbody><tr>
+							    <th class="tg-ssyz">Name</th>
+							    <th class="tg-mwif">Source</th>
+							    <th class="tg-ssyz">Cost</th>
+							    <th class="tg-ssyz">Quantity</th>
+							  </tr>
+							  <tr>
+							    <td class="tg-yxcv">Raspberry Pi 3</td>
+							    <td class="tg-ls9k">Amazon</td>
+							    <td class="tg-ls9k">$37.79</td>
+							    <td class="tg-ls9k">1</td>
+							  </tr>
+							  <tr>
+							    <td class="tg-kixb">Raspberry Pi Camera</td>
+							    <td class="tg-q9yg">Amazon</td>
+							    <td class="tg-q9yg">$26.55</td>
+							    <td class="tg-q9yg">1</td>
+							  </tr>
+							  <tr>
+							    <td class="tg-yxcv">USB Microphone</td>
+							    <td class="tg-ls9k">Amazon</td>
+							    <td class="tg-ls9k">$8.99</td>
+							    <td class="tg-ls9k">1</td>
+							  </tr>
+							  <tr>
+							    <td class="tg-kixb">Oracle Speaker</td>
+							    <td class="tg-q9yg">Career Fair Gift</td>
+							    <td class="tg-q9yg">Free</td>
+							    <td class="tg-q9yg">1</td>
+							  </tr>
+							  <tr>
+							    <td class="tg-kixb">Camera Mount</td>
+							    <td class="tg-q9yg">Amazon</td>
+							    <td class="tg-q9yg">$17.95</td>
+							    <td class="tg-q9yg">1</td>
+							  </tr>
+							  <tr>
+							    <td class="tg-kixb">Servo Motor</td>
+							    <td class="tg-q9yg">Borrow from lab</td>
+							    <td class="tg-q9yg">Free</td>
+							    <td class="tg-q9yg">2</td>
+							  </tr>
+							  <tr>
+							    <td class="tg-kixb">Robot Frame</td>
+							    <td class="tg-q9yg">Borrow from lab</td>
+							    <td class="tg-q9yg">Free</td>
+							    <td class="tg-q9yg">1</td>
+							  </tr>
+
+							</tbody></table>
+							</div>
+						</div><!--// Your section has ended -->
+
+						<div class="yui-gf"> <!--// This is a section -->
+							<div class="yui-u first">
+								<h2>Division of Labor</h2> <!--// put your heading here -->
+							</div>
+							<div class="yui-u">
+								<table class="tg" style="undefined;table-layout: fixed; width: 445px"> 
+								<thead>
+										<tr>
+											<th>Zhuo Chen</th>
+											<th>Rui Min</th>
+										</tr>
+									</thead>
+									<tbody>
+							        	<tr>
+											<td>Background Research</td>
+											<td>Background Research</td>
+										</tr>
+										<tr>
+											<td>Overall Hardware Design</td>
+											<td>Webpage Design</td>
+										</tr>
+										<tr>
+											<td>Face Detection</td>
+											<td>Voice Recognition</td>
+										</tr>
+										<tr>
+											<td>Servo Motor Control</td>
+											<td>Servo Motor Control</td>
+										</tr>				
+										<tr>
+											<td>Test and Debugging</td>
+											<td>Test and Debugging</td>
+										</tr>		
+										<tr>
+											<td>Project Report</td>
+											<td>Project Report</td>
+										</tr>				
+									</tbody>
+							    </table>
+							</div>
+						</div><!--// Your section has ended -->
+
+						<div class="yui-gf"> <!--// This is a section -->
+							<div class="yui-u first">
+								<h2>References</h2> <!--// put your heading here -->
+							</div>
+							<div class="yui-u">
+								<p>[1] Gouyon, F., F. Pachet, and O. Delerue. "Classifying percussive sounds: a matter of zero-crossing rate." Proceedings of the COST G-6 Conference on Digital Audio Effects, Verona, Italy. 2000.<br>
+								[2] Ahhhh...BIU!<br>
+								http://people.ece.cornell.edu/land/courses/ece4760/FinalProjects/f2012/tg293/tg293/index.html<br>
+								[3] Parallax Continuous Rotation Servo Motor Datasheet<br>
+								https://www.parallax.com/sites/default/files/downloads/900-00008-Continuous-Rotation-Servo-Documentation-v2.2.pdf<br>
+								[4] pigpio hardware PWM example http://abyz.co.uk/rpi/pigpio/python.html#hardware_PWM<br>
+								[5] Face Detection using Haar Cascades<br>
+								 http://docs.opencv.org/master/d7/d8b/tutorial_py_face_detection.html<br>
+								[6] ECE 5725 Lab 3 Instruction Note<br>
+								[7] Install guide: Raspberry Pi 3 + Raspbian Jessie + OpenCV 3 http://www.pyimagesearch.com/2016/04/18/install-guide-raspberry-pi-3-raspbian-jessie-opencv-3/<br>
+								[8] [Raspberry Pi] Using PyAudio & External Audio Card for Recording http://raspberrypirecipes.blogspot.com/2014/02/raspberry-pi-using-pyaudio-external.html<br>
+
+								</p> <!--// Put Content here -->
+							</div>
+						</div><!--// Your section has ended -->
+
+					<div class="yui-gf">
+						<div class="yui-u first">
+							<h2>Code Appendix</h2>
+						</div>
+							<div class="yui-u">
+<!-- HTML generated using hilite.me --><div style="background: #ffffff; overflow:auto;width:auto;border:solid gray;border-width:.1em .1em .1em .8em;padding:.2em .6em;"><pre style="margin: 0; line-height: 125%"><span style="color: #888888">###############################################################################</span>
+<span style="color: #888888">#                                                                             #</span>
+<span style="color: #888888"># file:    car.py                                            		  		  #</span>
+<span style="color: #888888">#                                                                             #</span>
+<span style="color: #888888"># authors: Zhuo Chen  - zc292                                                 #</span>
+<span style="color: #888888">#          Rui Min - rm877                                                    #</span>
+<span style="color: #888888">#                                                                             #</span>
+<span style="color: #888888"># date:    December 1st 2016                                                  #</span>
+<span style="color: #888888">#                                                                             #</span>
+<span style="color: #888888"># brief:   Main program of the robot dog. This program will receive commands  # </span>
+<span style="color: #888888">#		   from the face and frequency detection and move the car according   #</span>
+<span style="color: #888888">#		   to the signal 													  #</span>
+<span style="color: #888888">#                                                                             #</span>
+<span style="color: #888888">###############################################################################</span>
+<span style="color: #008800; font-weight: bold">import</span> <span style="color: #0e84b5; font-weight: bold">RPi.GPIO</span> <span style="color: #008800; font-weight: bold">as</span> <span style="color: #0e84b5; font-weight: bold">GPIO</span>
+<span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">motor_control_pigpio</span> <span style="color: #008800; font-weight: bold">import</span> pwm_motor
+<span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">datetime</span> <span style="color: #008800; font-weight: bold">import</span> datetime
+<span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">wheel</span> <span style="color: #008800; font-weight: bold">import</span> Wheel
+<span style="color: #008800; font-weight: bold">import</span> <span style="color: #0e84b5; font-weight: bold">socket</span>
+<span style="color: #008800; font-weight: bold">import</span> <span style="color: #0e84b5; font-weight: bold">pickle</span>
+<span style="color: #008800; font-weight: bold">import</span> <span style="color: #0e84b5; font-weight: bold">time</span>
+<span style="color: #008800; font-weight: bold">import</span> <span style="color: #0e84b5; font-weight: bold">pygame</span>
+<span style="color: #008800; font-weight: bold">import</span> <span style="color: #0e84b5; font-weight: bold">thread</span>
+
+<span style="color: #888888"># The class of the robot dog</span>
+<span style="color: #008800; font-weight: bold">class</span> <span style="color: #BB0066; font-weight: bold">Dog</span>():
+	<span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">__init__</span> (<span style="color: #007020">self</span>, left_channel, right_channel):
+		<span style="color: #007020">self</span><span style="color: #333333">.</span>left_wheel <span style="color: #333333">=</span> Wheel(<span style="background-color: #fff0f0">&#39;left&#39;</span>, left_channel)
+		<span style="color: #007020">self</span><span style="color: #333333">.</span>right_wheel <span style="color: #333333">=</span> Wheel(<span style="background-color: #fff0f0">&#39;right&#39;</span>, right_channel)
+
+
+	<span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">move</span>(<span style="color: #007020">self</span>, error):
+		x_error, y_error <span style="color: #333333">=</span> error
+		<span style="color: #888888"># if no face found and last instruction is (0, 0)</span>
+		<span style="color: #888888"># do not send any instruction to the motor</span>
+		<span style="color: #888888"># it was found out during test that repeatly sending 0 to the motor</span>
+		<span style="color: #888888"># sometimes cause the motor jettering</span>
+		<span style="color: #008800; font-weight: bold">if</span> <span style="color: #000000; font-weight: bold">not</span> x_error <span style="color: #000000; font-weight: bold">and</span> <span style="color: #000000; font-weight: bold">not</span> y_error:
+			<span style="color: #008800; font-weight: bold">global</span> last_move_instruction
+			<span style="color: #008800; font-weight: bold">if</span> last_move_instruction <span style="color: #333333">!=</span> <span style="color: #0000DD; font-weight: bold">0</span>:
+				<span style="color: #007020">self</span><span style="color: #333333">.</span>left_wheel<span style="color: #333333">.</span>forward(<span style="color: #0000DD; font-weight: bold">0</span>);
+				<span style="color: #007020">self</span><span style="color: #333333">.</span>right_wheel<span style="color: #333333">.</span>forward(<span style="color: #0000DD; font-weight: bold">0</span>);
+				last_move_instruction <span style="color: #333333">=</span> <span style="color: #0000DD; font-weight: bold">0</span>
+			<span style="color: #008800; font-weight: bold">return</span>
+
+		<span style="color: #888888"># adjust y speed with regrad to the size error</span>
+		y <span style="color: #333333">=</span> <span style="color: #007020">int</span>(y_error<span style="color: #333333">/</span><span style="color: #0000DD; font-weight: bold">2</span>)
+
+		<span style="color: #888888"># adjust x speed in two speeds</span>
+		<span style="color: #888888"># large error for stage 2 speed</span>
+		<span style="color: #888888"># small error for stage 1 speed</span>
+		<span style="color: #888888"># very small error or no error, stop</span>
+		<span style="color: #008800; font-weight: bold">if</span> x_error <span style="color: #333333">&gt;=</span> <span style="color: #0000DD; font-weight: bold">80</span>:
+			x <span style="color: #333333">=</span> <span style="color: #0000DD; font-weight: bold">2</span>
+		<span style="color: #008800; font-weight: bold">elif</span> x_error <span style="color: #333333">&lt;=</span> <span style="color: #333333">-</span><span style="color: #0000DD; font-weight: bold">80</span>:
+			x <span style="color: #333333">=</span> <span style="color: #333333">-</span><span style="color: #0000DD; font-weight: bold">2</span>
+		<span style="color: #008800; font-weight: bold">elif</span> x_error <span style="color: #333333">&gt;=</span> <span style="color: #0000DD; font-weight: bold">40</span>:
+			x <span style="color: #333333">=</span> <span style="color: #0000DD; font-weight: bold">1</span>
+		<span style="color: #008800; font-weight: bold">elif</span> x_error <span style="color: #333333">&lt;=</span> <span style="color: #333333">-</span><span style="color: #0000DD; font-weight: bold">40</span>:
+			x <span style="color: #333333">=</span> <span style="color: #333333">-</span><span style="color: #0000DD; font-weight: bold">1</span>
+		<span style="color: #008800; font-weight: bold">elif</span> x_error <span style="color: #333333">&lt;</span> <span style="color: #0000DD; font-weight: bold">40</span> <span style="color: #000000; font-weight: bold">or</span> x_error <span style="color: #333333">&gt;</span> <span style="color: #333333">-</span><span style="color: #0000DD; font-weight: bold">40</span>:
+			x <span style="color: #333333">=</span> <span style="color: #0000DD; font-weight: bold">0</span>
+
+		<span style="color: #008800; font-weight: bold">if</span> x <span style="color: #333333">!=</span> <span style="color: #0000DD; font-weight: bold">0</span> <span style="color: #000000; font-weight: bold">or</span> y <span style="color: #333333">!=</span> <span style="color: #0000DD; font-weight: bold">0</span>:
+			<span style="color: #888888"># ensure x, y value within [-10, 10]</span>
+			left <span style="color: #333333">=</span> <span style="color: #007020">self</span><span style="color: #333333">.</span>clamp(<span style="color: #333333">-</span>x<span style="color: #333333">+</span>y)
+			right <span style="color: #333333">=</span> <span style="color: #007020">self</span><span style="color: #333333">.</span>clamp(x<span style="color: #333333">+</span>y)
+
+			<span style="color: #888888"># apply speed</span>
+			<span style="color: #007020">self</span><span style="color: #333333">.</span>left_wheel<span style="color: #333333">.</span>forward(left);
+			<span style="color: #007020">self</span><span style="color: #333333">.</span>right_wheel<span style="color: #333333">.</span>forward(right);
+			last_move_instruction <span style="color: #333333">=</span> <span style="color: #0000DD; font-weight: bold">1</span>
+		<span style="color: #008800; font-weight: bold">else</span>:
+			<span style="color: #007020">self</span><span style="color: #333333">.</span>left_wheel<span style="color: #333333">.</span>forward(<span style="color: #0000DD; font-weight: bold">0</span>);
+			<span style="color: #007020">self</span><span style="color: #333333">.</span>right_wheel<span style="color: #333333">.</span>forward(<span style="color: #0000DD; font-weight: bold">0</span>);
+			last_move_instruction <span style="color: #333333">=</span> <span style="color: #0000DD; font-weight: bold">0</span>
+	
+	<span style="color: #888888"># ensure x, y value within [-10, 10]</span>
+	<span style="color: #555555; font-weight: bold">@staticmethod</span>
+	<span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">clamp</span>(in_put, uppper_bound <span style="color: #333333">=</span> <span style="color: #0000DD; font-weight: bold">10</span>, lower_bound <span style="color: #333333">=</span> <span style="color: #333333">-</span><span style="color: #0000DD; font-weight: bold">10</span>):
+		<span style="color: #008800; font-weight: bold">if</span> in_put <span style="color: #333333">&lt;</span> lower_bound:
+			in_put <span style="color: #333333">=</span> lower_bound
+		<span style="color: #008800; font-weight: bold">elif</span> in_put <span style="color: #333333">&gt;</span> uppper_bound:
+			in_put <span style="color: #333333">=</span> uppper_bound
+		<span style="color: #008800; font-weight: bold">return</span> in_put
+
+	<span style="color: #888888"># dog barking funtion</span>
+	<span style="color: #555555; font-weight: bold">@staticmethod</span>
+	<span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">bark</span>(index):
+		<span style="color: #008800; font-weight: bold">if</span> index <span style="color: #333333">==</span> <span style="background-color: #fff0f0">&#39;stop&#39;</span>:
+			pygame<span style="color: #333333">.</span>mixer<span style="color: #333333">.</span>music<span style="color: #333333">.</span>load(<span style="background-color: #fff0f0">&quot;sounds/dog_puppy.wav&quot;</span>)
+		<span style="color: #008800; font-weight: bold">if</span> index <span style="color: #333333">==</span> <span style="background-color: #fff0f0">&#39;missing_face&#39;</span>:
+			pygame<span style="color: #333333">.</span>mixer<span style="color: #333333">.</span>music<span style="color: #333333">.</span>load(<span style="background-color: #fff0f0">&quot;sounds/dog_whine_duke.wav&quot;</span>)
+		<span style="color: #008800; font-weight: bold">if</span> index <span style="color: #333333">==</span> <span style="background-color: #fff0f0">&#39;go&#39;</span>:
+			pygame<span style="color: #333333">.</span>mixer<span style="color: #333333">.</span>music<span style="color: #333333">.</span>load(<span style="background-color: #fff0f0">&quot;sounds/dog_bark4.wav&quot;</span>)
+		pygame<span style="color: #333333">.</span>mixer<span style="color: #333333">.</span>music<span style="color: #333333">.</span>play()
+
+
+<span style="color: #008800; font-weight: bold">if</span> __name__ <span style="color: #333333">==</span> <span style="background-color: #fff0f0">&#39;__main__&#39;</span>:
+	<span style="color: #888888"># setup the two channels for the wheels</span>
+	LEFT_CHANNEL <span style="color: #333333">=</span> <span style="color: #0000DD; font-weight: bold">20</span>
+	RIGHT_CHANNEL <span style="color: #333333">=</span> <span style="color: #0000DD; font-weight: bold">21</span>
+	GPIO<span style="color: #333333">.</span>setmode(GPIO<span style="color: #333333">.</span>BCM)
+	<span style="color: #888888"># initialize a dog instance</span>
+	dog <span style="color: #333333">=</span> Dog(LEFT_CHANNEL, RIGHT_CHANNEL)
+	<span style="color: #888888"># setup the socket to receive signal</span>
+	sock <span style="color: #333333">=</span> socket<span style="color: #333333">.</span>socket(socket<span style="color: #333333">.</span>AF_INET, socket<span style="color: #333333">.</span>SOCK_DGRAM) <span style="color: #888888"># UDP</span>
+	sock<span style="color: #333333">.</span>bind((<span style="background-color: #fff0f0">&#39;localhost&#39;</span>, <span style="color: #0000DD; font-weight: bold">8089</span>))
+
+	<span style="color: #888888"># setup pygame mixer for playing sound</span>
+	pygame<span style="color: #333333">.</span>mixer<span style="color: #333333">.</span>init()
+	move <span style="color: #333333">=</span> <span style="color: #007020">False</span>
+	continue_loop <span style="color: #333333">=</span> <span style="color: #007020">True</span>
+	found_face <span style="color: #333333">=</span> <span style="color: #007020">True</span>
+	last_bark <span style="color: #333333">=</span> <span style="color: #0000DD; font-weight: bold">0</span>
+	last_move_instruction <span style="color: #333333">=</span> <span style="color: #007020">None</span>
+	<span style="color: #008800; font-weight: bold">while</span> continue_loop:
+		<span style="color: #008800; font-weight: bold">try</span>:
+			<span style="color: #888888"># pooling date from the socket</span>
+			data, addr <span style="color: #333333">=</span> sock<span style="color: #333333">.</span>recvfrom(<span style="color: #0000DD; font-weight: bold">1024</span>) <span style="color: #888888"># buffer size is 1024 bytes</span>
+			<span style="color: #888888"># unpickle received data</span>
+			data <span style="color: #333333">=</span> pickle<span style="color: #333333">.</span>loads(data)
+			<span style="color: #888888"># received error signal </span>
+			<span style="color: #008800; font-weight: bold">if</span> data[<span style="color: #0000DD; font-weight: bold">0</span>] <span style="color: #333333">==</span> <span style="background-color: #fff0f0">&#39;error&#39;</span>:
+				<span style="color: #888888"># if no face found</span>
+				<span style="color: #008800; font-weight: bold">if</span> data[<span style="color: #0000DD; font-weight: bold">1</span>] <span style="color: #333333">==</span> (<span style="color: #007020">None</span>, <span style="color: #007020">None</span>):
+					dog<span style="color: #333333">.</span>move( (<span style="color: #0000DD; font-weight: bold">0</span>, <span style="color: #0000DD; font-weight: bold">0</span>) )
+					<span style="color: #008800; font-weight: bold">if</span> found_face <span style="color: #333333">==</span> <span style="color: #007020">True</span>:
+						found_face <span style="color: #333333">=</span> <span style="color: #007020">False</span>
+						<span style="color: #008800; font-weight: bold">if</span> time<span style="color: #333333">.</span>time() <span style="color: #333333">-</span> last_bark <span style="color: #333333">&gt;=</span> <span style="color: #0000DD; font-weight: bold">3</span>:
+							dog<span style="color: #333333">.</span>bark(<span style="background-color: #fff0f0">&#39;missing_face&#39;</span>)
+							last_bark <span style="color: #333333">=</span> time<span style="color: #333333">.</span>time()
+				<span style="color: #888888"># move if move true</span>
+				<span style="color: #008800; font-weight: bold">elif</span> move:
+					found_face <span style="color: #333333">=</span> <span style="color: #007020">True</span>
+					dog<span style="color: #333333">.</span>move(data[<span style="color: #0000DD; font-weight: bold">1</span>])
+				<span style="color: #008800; font-weight: bold">elif</span> <span style="color: #000000; font-weight: bold">not</span> move:
+					found_face <span style="color: #333333">=</span> <span style="color: #007020">True</span>
+					dog<span style="color: #333333">.</span>move( (<span style="color: #0000DD; font-weight: bold">0</span>, <span style="color: #0000DD; font-weight: bold">0</span>) )
+
+			<span style="color: #888888"># if received signal is sound command, change the move value and play sound</span>
+			<span style="color: #008800; font-weight: bold">if</span> data[<span style="color: #0000DD; font-weight: bold">0</span>] <span style="color: #333333">==</span> <span style="background-color: #fff0f0">&#39;command&#39;</span>:
+				<span style="color: #008800; font-weight: bold">print</span> data[<span style="color: #0000DD; font-weight: bold">1</span>]
+				<span style="color: #008800; font-weight: bold">if</span> data[<span style="color: #0000DD; font-weight: bold">1</span>] <span style="color: #333333">==</span> <span style="background-color: #fff0f0">&#39;stop&#39;</span>:
+					move <span style="color: #333333">=</span> <span style="color: #007020">False</span>
+					dog<span style="color: #333333">.</span>bark(<span style="background-color: #fff0f0">&#39;stop&#39;</span>)
+				<span style="color: #008800; font-weight: bold">else</span>:
+					move <span style="color: #333333">=</span> <span style="color: #007020">True</span>
+					dog<span style="color: #333333">.</span>bark(<span style="background-color: #fff0f0">&#39;go&#39;</span>)
+		<span style="color: #008800; font-weight: bold">except</span> <span style="color: #FF0000; font-weight: bold">KeyboardInterrupt</span>:
+			dog<span style="color: #333333">.</span>move( (<span style="color: #0000DD; font-weight: bold">0</span>, <span style="color: #0000DD; font-weight: bold">0</span>) )
+			continue_loop <span style="color: #333333">=</span> <span style="color: #007020">False</span>
+</pre></div>
+
+
+<!-- HTML generated using hilite.me --><div style="background: #ffffff; overflow:auto;width:auto;border:solid gray;border-width:.1em .1em .1em .8em;padding:.2em .6em;"><pre style="margin: 0; line-height: 125%"><span style="color: #888888">###############################################################################</span>
+<span style="color: #888888">#                                                                             #</span>
+<span style="color: #888888"># file:    face_m_picam.py                                            		  #</span>
+<span style="color: #888888">#                                                                             #</span>
+<span style="color: #888888"># authors: Zhuo Chen  - zc292                                                 #</span>
+<span style="color: #888888">#          Rui Min - rm877                                                    #</span>
+<span style="color: #888888">#                                                                             #</span>
+<span style="color: #888888"># date:    December 1st 2016                                                  #</span>
+<span style="color: #888888">#                                                                             #</span>
+<span style="color: #888888"># brief:   The face detection code for the Robot dog. This program			  #</span>
+<span style="color: #888888"># 		   will detect and presented faces and sent the error signal to the   #</span>
+<span style="color: #888888"># 	       main program											              # </span>
+<span style="color: #888888">#                                                                             #</span>
+<span style="color: #888888">###############################################################################</span>
+<span style="color: #008800; font-weight: bold">import</span> <span style="color: #0e84b5; font-weight: bold">cv2</span>
+<span style="color: #008800; font-weight: bold">import</span> <span style="color: #0e84b5; font-weight: bold">os</span>
+<span style="color: #008800; font-weight: bold">import</span> <span style="color: #0e84b5; font-weight: bold">numpy</span>
+<span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">imutils</span> <span style="color: #008800; font-weight: bold">import</span> encodings
+<span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">time</span> <span style="color: #008800; font-weight: bold">import</span> sleep
+<span style="color: #008800; font-weight: bold">import</span> <span style="color: #0e84b5; font-weight: bold">time</span>
+<span style="color: #008800; font-weight: bold">import</span> <span style="color: #0e84b5; font-weight: bold">socket</span>
+<span style="color: #008800; font-weight: bold">import</span> <span style="color: #0e84b5; font-weight: bold">pickle</span>
+<span style="color: #008800; font-weight: bold">import</span> <span style="color: #0e84b5; font-weight: bold">multiprocessing</span> <span style="color: #008800; font-weight: bold">as</span> <span style="color: #0e84b5; font-weight: bold">mp</span>
+<span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">picamera.array</span> <span style="color: #008800; font-weight: bold">import</span> PiRGBArray
+<span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">picamera</span> <span style="color: #008800; font-weight: bold">import</span> PiCamera
+
+<span style="color: #888888"># setup the camera</span>
+camera <span style="color: #333333">=</span> PiCamera()
+camera<span style="color: #333333">.</span>resolution <span style="color: #333333">=</span> ( <span style="color: #0000DD; font-weight: bold">320</span>, <span style="color: #0000DD; font-weight: bold">240</span> )
+camera<span style="color: #333333">.</span>framerate <span style="color: #333333">=</span> <span style="color: #0000DD; font-weight: bold">60</span>
+rawCapture <span style="color: #333333">=</span> PiRGBArray( camera, size<span style="color: #333333">=</span>( <span style="color: #0000DD; font-weight: bold">320</span>, <span style="color: #0000DD; font-weight: bold">240</span> ) )
+
+<span style="color: #888888"># setup the face detector</span>
+cascade_path <span style="color: #333333">=</span> <span style="background-color: #fff0f0">&#39;cascades/haarcascade_frontalface_default.xml&#39;</span>
+facedetector <span style="color: #333333">=</span> cv2<span style="color: #333333">.</span>CascadeClassifier(cascade_path)
+
+go <span style="color: #333333">=</span> <span style="color: #007020">True</span>
+total <span style="color: #333333">=</span> <span style="color: #0000DD; font-weight: bold">0</span>
+error <span style="color: #333333">=</span> (<span style="color: #0000DD; font-weight: bold">0</span>, <span style="color: #0000DD; font-weight: bold">0</span>)
+
+<span style="color: #888888"># setup the socket</span>
+sock <span style="color: #333333">=</span> socket<span style="color: #333333">.</span>socket(socket<span style="color: #333333">.</span>AF_INET, socket<span style="color: #333333">.</span>SOCK_DGRAM) <span style="color: #888888"># UDP</span>
+
+<span style="color: #888888"># This function will detect the face in the frame and send the error signal to the main program</span>
+<span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">get_face_send</span>(frame):
+	<span style="color: #008800; font-weight: bold">try</span>:
+		gray <span style="color: #333333">=</span> cv2<span style="color: #333333">.</span>cvtColor(frame, cv2<span style="color: #333333">.</span>COLOR_BGR2GRAY)
+		faceRects <span style="color: #333333">=</span> facedetector<span style="color: #333333">.</span>detectMultiScale(gray, scaleFactor<span style="color: #333333">=</span><span style="color: #6600EE; font-weight: bold">1.1</span>, minNeighbors<span style="color: #333333">=</span><span style="color: #0000DD; font-weight: bold">9</span>, minSize<span style="color: #333333">=</span>(<span style="color: #0000DD; font-weight: bold">10</span>, <span style="color: #0000DD; font-weight: bold">10</span>))
+		<span style="color: #008800; font-weight: bold">if</span> <span style="color: #007020">len</span>(faceRects) <span style="color: #333333">&gt;</span> <span style="color: #0000DD; font-weight: bold">0</span>:
+			(x, y, w, h) <span style="color: #333333">=</span> <span style="color: #007020">max</span>(faceRects, key<span style="color: #333333">=</span><span style="color: #008800; font-weight: bold">lambda</span> b:(b[<span style="color: #0000DD; font-weight: bold">2</span>] <span style="color: #333333">*</span> b[<span style="color: #0000DD; font-weight: bold">3</span>]))
+			center <span style="color: #333333">=</span> (x<span style="color: #333333">+</span><span style="color: #6600EE; font-weight: bold">0.5</span><span style="color: #333333">*</span>w, y<span style="color: #333333">+</span><span style="color: #6600EE; font-weight: bold">0.5</span><span style="color: #333333">*</span>h)
+	 		error <span style="color: #333333">=</span> (<span style="color: #0000DD; font-weight: bold">160</span><span style="color: #333333">-</span>center[<span style="color: #0000DD; font-weight: bold">0</span>], w<span style="color: #333333">-</span><span style="color: #0000DD; font-weight: bold">55</span>)
+	 	<span style="color: #008800; font-weight: bold">else</span>: error <span style="color: #333333">=</span> (<span style="color: #007020">None</span>, <span style="color: #007020">None</span>)
+	 	<span style="color: #888888"># print error</span>
+		message <span style="color: #333333">=</span> pickle<span style="color: #333333">.</span>dumps((<span style="background-color: #fff0f0">&#39;error&#39;</span>, error))
+	 	sock<span style="color: #333333">.</span>sendto(message, (<span style="background-color: #fff0f0">&#39;localhost&#39;</span>, <span style="color: #0000DD; font-weight: bold">8089</span>))
+	<span style="color: #008800; font-weight: bold">except</span> <span style="color: #FF0000; font-weight: bold">KeyboardInterrupt</span>:
+	 	<span style="color: #008800; font-weight: bold">global</span> key
+	 	key <span style="color: #333333">=</span> <span style="color: #007020">ord</span>(<span style="background-color: #fff0f0">&quot;q&quot;</span>)
+
+
+<span style="color: #888888"># Running face detection with multiple processes.</span>
+<span style="color: #888888"># setup the process pool. Using at most 3 cores, left one for other processes</span>
+pool <span style="color: #333333">=</span> mp<span style="color: #333333">.</span>Pool( processes <span style="color: #333333">=</span> <span style="color: #0000DD; font-weight: bold">3</span> )
+frame_count <span style="color: #333333">=</span> <span style="color: #0000DD; font-weight: bold">0</span>
+sleep(<span style="color: #0000DD; font-weight: bold">2</span>)
+<span style="color: #888888"># t_start = time.time()</span>
+<span style="color: #008800; font-weight: bold">for</span> frame <span style="color: #000000; font-weight: bold">in</span> camera<span style="color: #333333">.</span>capture_continuous( rawCapture, format<span style="color: #333333">=</span><span style="background-color: #fff0f0">&quot;bgr&quot;</span>, use_video_port<span style="color: #333333">=</span><span style="color: #007020">True</span> ):
+	image <span style="color: #333333">=</span> frame<span style="color: #333333">.</span>array
+	<span style="color: #888888"># frame_count += 1</span>
+	<span style="color: #888888"># frame_rate = frame_count/(time.time() - t_start)</span>
+	<span style="color: #888888"># print &quot;frame rate: %.1f&quot;%frame_rate</span>
+	<span style="color: #008800; font-weight: bold">try</span>:
+		process <span style="color: #333333">=</span> pool<span style="color: #333333">.</span>apply_async( get_face_send, (image,) ) 
+	 	process<span style="color: #333333">.</span>get()		
+		<span style="color: #888888"># cv2.imshow(&quot;Frame&quot;, image)</span>
+		key <span style="color: #333333">=</span> cv2<span style="color: #333333">.</span>waitKey(<span style="color: #0000DD; font-weight: bold">1</span>) <span style="color: #333333">&amp;</span> <span style="color: #005588; font-weight: bold">0xFF</span>
+		<span style="color: #008800; font-weight: bold">if</span> key <span style="color: #333333">==</span> <span style="color: #007020">ord</span>(<span style="background-color: #fff0f0">&quot;q&quot;</span>):
+			<span style="color: #008800; font-weight: bold">break</span>
+		rawCapture<span style="color: #333333">.</span>truncate( <span style="color: #0000DD; font-weight: bold">0</span> )
+	<span style="color: #008800; font-weight: bold">except</span>:
+		<span style="color: #008800; font-weight: bold">break</span>
+
+cv2<span style="color: #333333">.</span>destroyAllWindows()
+</pre></div>
+
+
+<div style="background: #ffffff; overflow:auto;width:auto;border:solid gray;border-width:.1em .1em .1em .8em;padding:.2em .6em;"><pre style="margin: 0; line-height: 125%"><span style="color: #888888">###############################################################################</span>
+<span style="color: #888888">#                                                                             #</span>
+<span style="color: #888888"># file:    hytersis_fre.py                                                    #</span>
+<span style="color: #888888">#                                                                             #</span>
+<span style="color: #888888"># authors: Rui Min  - rm877                                                   #</span>
+<span style="color: #888888">#          Zhuo Chen - zc292                                               	  #</span>
+<span style="color: #888888">#                                                                             #</span>
+<span style="color: #888888"># date:    Dec 2016                                                  		  #</span>
+<span style="color: #888888">#                                                                             #</span>
+<span style="color: #888888"># brief:   This program is used for voice recognition. The detection method   #</span>
+<span style="color: #888888">#			we used is zero crossing										  #</span>
+<span style="color: #888888">#                                                                             #</span>
+<span style="color: #888888">###############################################################################</span>
+
+
+<span style="color: #008800; font-weight: bold">import</span> <span style="color: #0e84b5; font-weight: bold">pyaudio</span>
+<span style="color: #008800; font-weight: bold">import</span> <span style="color: #0e84b5; font-weight: bold">math</span>
+<span style="color: #008800; font-weight: bold">import</span> <span style="color: #0e84b5; font-weight: bold">socket</span>
+<span style="color: #008800; font-weight: bold">import</span> <span style="color: #0e84b5; font-weight: bold">pickle</span>
+<span style="color: #008800; font-weight: bold">import</span> <span style="color: #0e84b5; font-weight: bold">matplotlib.pyplot</span> <span style="color: #008800; font-weight: bold">as</span> <span style="color: #0e84b5; font-weight: bold">plt</span>
+<span style="color: #008800; font-weight: bold">import</span> <span style="color: #0e84b5; font-weight: bold">numpy</span> <span style="color: #008800; font-weight: bold">as</span> <span style="color: #0e84b5; font-weight: bold">np</span>
+<span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">scipy.signal</span> <span style="color: #008800; font-weight: bold">import</span> butter
+<span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">scipy.signal</span> <span style="color: #008800; font-weight: bold">import</span> filtfilt
+<span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">matplotlib.mlab</span> <span style="color: #008800; font-weight: bold">import</span> find
+<span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">time</span> <span style="color: #008800; font-weight: bold">import</span> sleep
+<span style="color: #008800; font-weight: bold">import</span> <span style="color: #0e84b5; font-weight: bold">time</span>
+
+<span style="color: #888888"># chunk or frame size</span>
+CHUNK <span style="color: #333333">=</span> <span style="color: #0000DD; font-weight: bold">8192</span>
+FORMAT <span style="color: #333333">=</span> pyaudio<span style="color: #333333">.</span>paInt16
+CHANNELS <span style="color: #333333">=</span> <span style="color: #0000DD; font-weight: bold">1</span>
+<span style="color: #888888"># sampling rate</span>
+RATE <span style="color: #333333">=</span> <span style="color: #0000DD; font-weight: bold">44100</span>
+<span style="color: #888888"># high threshold of frequency</span>
+COMMAND_FREQ_HIGH <span style="color: #333333">=</span> <span style="color: #0000DD; font-weight: bold">800</span>
+<span style="color: #888888"># low threshold of frequency</span>
+COMMAND_FREQ_LOW <span style="color: #333333">=</span> <span style="color: #0000DD; font-weight: bold">300</span>
+STOP <span style="color: #333333">=</span> <span style="background-color: #fff0f0">&#39;stop&#39;</span>
+GO <span style="color: #333333">=</span> <span style="background-color: #fff0f0">&#39;go&#39;</span>
+PORT <span style="color: #333333">=</span> <span style="color: #0000DD; font-weight: bold">8089</span>
+
+<span style="color: #888888"># Zero crossing function, refer from http://stackoverflow.com/questions/9082431/frequency-analysis-in-python</span>
+<span style="color: #888888"># Input: audio signal</span>
+<span style="color: #888888"># Output: fundenmental frequency of the signal</span>
+<span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">Pitch</span>(input_signal):
+	input_signal <span style="color: #333333">=</span> np<span style="color: #333333">.</span>fromstring(input_signal, <span style="background-color: #fff0f0">&#39;Int16&#39;</span>);
+	crossing <span style="color: #333333">=</span> [math<span style="color: #333333">.</span>copysign(<span style="color: #6600EE; font-weight: bold">1.0</span>, s) <span style="color: #008800; font-weight: bold">for</span> s <span style="color: #000000; font-weight: bold">in</span> input_signal]
+	index <span style="color: #333333">=</span> find(np<span style="color: #333333">.</span>diff(crossing));
+	f0<span style="color: #333333">=</span><span style="color: #007020">round</span>(<span style="color: #007020">len</span>(index) <span style="color: #333333">*</span>RATE <span style="color: #333333">/</span>(<span style="color: #0000DD; font-weight: bold">2</span><span style="color: #333333">*</span>np<span style="color: #333333">.</span>prod(<span style="color: #007020">len</span>(input_signal))))
+	<span style="color: #008800; font-weight: bold">return</span> f0;
+
+<span style="color: #888888"># UDP send function</span>
+<span style="color: #888888"># Input: string of command</span>
+<span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">UPD_send</span>(command):
+	message <span style="color: #333333">=</span> pickle<span style="color: #333333">.</span>dumps((<span style="background-color: #fff0f0">&#39;command&#39;</span>, command))
+	sock<span style="color: #333333">.</span>sendto(message, (<span style="background-color: #fff0f0">&#39;localhost&#39;</span>, PORT))
+
+sock <span style="color: #333333">=</span> socket<span style="color: #333333">.</span>socket(socket<span style="color: #333333">.</span>AF_INET, socket<span style="color: #333333">.</span>SOCK_DGRAM)
+p <span style="color: #333333">=</span> pyaudio<span style="color: #333333">.</span>PyAudio()
+
+stream <span style="color: #333333">=</span> p<span style="color: #333333">.</span>open(format <span style="color: #333333">=</span> FORMAT,
+channels <span style="color: #333333">=</span> CHANNELS,
+rate <span style="color: #333333">=</span> RATE,
+<span style="color: #007020">input</span> <span style="color: #333333">=</span> <span style="color: #007020">True</span>,
+frames_per_buffer <span style="color: #333333">=</span> CHUNK,
+input_device_index <span style="color: #333333">=</span> <span style="color: #0000DD; font-weight: bold">0</span>)
+
+terminate_flag <span style="color: #333333">=</span> <span style="color: #007020">False</span>
+last_sent_time <span style="color: #333333">=</span> <span style="color: #0000DD; font-weight: bold">0</span>
+check_hi <span style="color: #333333">=</span> <span style="color: #0000DD; font-weight: bold">0</span>
+
+<span style="color: #008800; font-weight: bold">while</span> <span style="color: #000000; font-weight: bold">not</span> terminate_flag :
+	<span style="color: #008800; font-weight: bold">try</span>:
+		data <span style="color: #333333">=</span> stream<span style="color: #333333">.</span>read(CHUNK)
+		frequency<span style="color: #333333">=</span>Pitch(data)
+
+		<span style="color: #008800; font-weight: bold">if</span> check_hi <span style="color: #333333">&gt;</span> <span style="color: #0000DD; font-weight: bold">0</span>:
+			<span style="color: #008800; font-weight: bold">if</span> check_hi <span style="color: #333333">==</span> <span style="color: #0000DD; font-weight: bold">1</span>:
+				UPD_send(GO)
+				last_sent_time <span style="color: #333333">=</span> time<span style="color: #333333">.</span>time()
+
+			<span style="color: #008800; font-weight: bold">elif</span> frequency <span style="color: #333333">&gt;=</span> COMMAND_FREQ_HIGH:
+				last_sent_time <span style="color: #333333">=</span> time<span style="color: #333333">.</span>time()
+				UPD_send(STOP)
+				check_hi <span style="color: #333333">=</span> <span style="color: #0000DD; font-weight: bold">1</span>
+			check_hi <span style="color: #333333">-=</span> <span style="color: #0000DD; font-weight: bold">1</span>
+
+		<span style="color: #008800; font-weight: bold">elif</span> frequency <span style="color: #333333">&gt;=</span> COMMAND_FREQ_HIGH <span style="color: #000000; font-weight: bold">and</span> time<span style="color: #333333">.</span>time() <span style="color: #333333">-</span> last_sent_time <span style="color: #333333">&gt;=</span> <span style="color: #0000DD; font-weight: bold">3</span>:
+			UPD_send(STOP)
+			last_sent_time <span style="color: #333333">=</span> time<span style="color: #333333">.</span>time()
+
+		<span style="color: #008800; font-weight: bold">elif</span> frequency <span style="color: #333333">&gt;=</span> COMMAND_FREQ_LOW <span style="color: #000000; font-weight: bold">and</span> time<span style="color: #333333">.</span>time() <span style="color: #333333">-</span> last_sent_time <span style="color: #333333">&gt;=</span> <span style="color: #0000DD; font-weight: bold">3</span>:
+			check_hi <span style="color: #333333">=</span> <span style="color: #0000DD; font-weight: bold">3</span>
+
+	<span style="color: #008800; font-weight: bold">except</span> <span style="color: #FF0000; font-weight: bold">KeyboardInterrupt</span>:
+		<span style="color: #007020">exit</span>()
+</pre></div>
+
+<!-- HTML generated using hilite.me --><div style="background: #ffffff; overflow:auto;width:auto;border:solid gray;border-width:.1em .1em .1em .8em;padding:.2em .6em;"><pre style="margin: 0; line-height: 125%"><span style="color: #888888">###############################################################################</span>
+<span style="color: #888888">#                                                                             #</span>
+<span style="color: #888888"># file:    motor_control_pigpio.py                                            #</span>
+<span style="color: #888888">#                                                                             #</span>
+<span style="color: #888888"># authors: Zhuo Chen  - zc292                                                 #</span>
+<span style="color: #888888">#          Rui Min - rm877                                                    #</span>
+<span style="color: #888888">#                                                                             #</span>
+<span style="color: #888888"># date:    December 1st 2016                                                  #</span>
+<span style="color: #888888">#                                                                             #</span>
+<span style="color: #888888"># brief:   This is the servo motor controller module with pigpio.             # </span>
+<span style="color: #888888">#                                                                             #</span>
+<span style="color: #888888">###############################################################################</span>
+
+<span style="color: #008800; font-weight: bold">import</span> <span style="color: #0e84b5; font-weight: bold">RPi.GPIO</span> <span style="color: #008800; font-weight: bold">as</span> <span style="color: #0e84b5; font-weight: bold">GPIO</span>
+<span style="color: #008800; font-weight: bold">import</span> <span style="color: #0e84b5; font-weight: bold">time</span>
+<span style="color: #008800; font-weight: bold">import</span> <span style="color: #0e84b5; font-weight: bold">pigpio</span>
+
+<span style="color: #008800; font-weight: bold">class</span> <span style="color: #BB0066; font-weight: bold">pwm_motor</span>():
+	<span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">__init__</span>(<span style="color: #007020">self</span>, channel, 
+				 center_pulse <span style="color: #333333">=</span> <span style="color: #6600EE; font-weight: bold">1.5</span>, 
+				 f_clkwise_pulse <span style="color: #333333">=</span> <span style="color: #6600EE; font-weight: bold">1.3</span>, 
+				 f_cclkwise_pulse <span style="color: #333333">=</span> <span style="color: #6600EE; font-weight: bold">1.7</span>, 
+				 base_pulse <span style="color: #333333">=</span> <span style="color: #0000DD; font-weight: bold">20</span>, 
+				 step_number <span style="color: #333333">=</span> <span style="color: #0000DD; font-weight: bold">10</span>):
+
+		<span style="color: #888888"># period = base_pulse + pulse</span>
+		<span style="color: #888888"># frequency = 1/period</span>
+		<span style="color: #888888"># duty cycle = pulse/period</span>
+
+		<span style="color: #888888"># As discribed on the datasheet, when pulse is 1.5ms, the motor</span>
+		<span style="color: #888888"># 	should stopped.</span>
+		<span style="color: #888888"># When pulse is 1.3, the motor should running clockwise at full speed.</span>
+		<span style="color: #888888"># When pulse is 1.7, the motor should running counter_clockwise at full speed.</span>
+		<span style="color: #888888"># At each direction, the speed is divided into 10 stages.</span>
+		<span style="color: #888888"># 	then the speed can be changed by adding intervals to the base pulse</span>
+		<span style="color: #007020">self</span><span style="color: #333333">.</span>pwm <span style="color: #333333">=</span> pigpio<span style="color: #333333">.</span>pi()
+		<span style="color: #007020">self</span><span style="color: #333333">.</span>channel <span style="color: #333333">=</span> channel
+		<span style="color: #888888"># GPIO.setup(self.channel, GPIO.OUT)</span>
+		<span style="color: #007020">self</span><span style="color: #333333">.</span>base_pulse <span style="color: #333333">=</span> base_pulse
+		<span style="color: #007020">self</span><span style="color: #333333">.</span>center_pulse <span style="color: #333333">=</span> center_pulse
+		<span style="color: #007020">self</span><span style="color: #333333">.</span>f_clkwise_pulse <span style="color: #333333">=</span> f_clkwise_pulse
+		<span style="color: #007020">self</span><span style="color: #333333">.</span>f_cclkwise_pulse <span style="color: #333333">=</span> f_cclkwise_pulse
+		<span style="color: #007020">self</span><span style="color: #333333">.</span>pulse_interval <span style="color: #333333">=</span> (center_pulse <span style="color: #333333">-</span> f_clkwise_pulse)<span style="color: #333333">/</span>step_number
+		<span style="color: #007020">self</span><span style="color: #333333">.</span>current_stage <span style="color: #333333">=</span> <span style="color: #0000DD; font-weight: bold">0</span>
+		<span style="color: #007020">self</span><span style="color: #333333">.</span>pulse <span style="color: #333333">=</span> <span style="color: #0000DD; font-weight: bold">0</span>
+		<span style="color: #007020">self</span><span style="color: #333333">.</span>pwm<span style="color: #333333">.</span>set_PWM_range(<span style="color: #007020">self</span><span style="color: #333333">.</span>channel ,<span style="color: #0000DD; font-weight: bold">10000</span>)
+		<span style="color: #888888"># get the frequency and duty cycle for 0 speed</span>
+		frequency, duty_cycle <span style="color: #333333">=</span> <span style="color: #007020">self</span><span style="color: #333333">.</span>get_frequency_dutycycle(<span style="color: #007020">self</span><span style="color: #333333">.</span>current_stage)
+		<span style="color: #888888"># self.pi_hw.hardware_PWM(self.channel, frequency, duty_cycle)</span>
+		<span style="color: #007020">self</span><span style="color: #333333">.</span>pwm<span style="color: #333333">.</span>set_PWM_frequency(<span style="color: #007020">self</span><span style="color: #333333">.</span>channel ,frequency)
+		<span style="color: #007020">self</span><span style="color: #333333">.</span>pwm<span style="color: #333333">.</span>set_PWM_dutycycle(<span style="color: #007020">self</span><span style="color: #333333">.</span>channel ,duty_cycle)
+
+		<span style="color: #888888"># start the pwm with given paramenter.</span>
+		<span style="color: #888888"># self.pwm = GPIO.PWM(self.channel, frequency)</span>
+		<span style="color: #888888"># self.pwm.start(duty_cycle)</span>
+
+	<span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">get_frequency_dutycycle</span>(<span style="color: #007020">self</span>, stage):
+		<span style="color: #888888"># period = base_pulse + pulse</span>
+		<span style="color: #888888"># frequency = 1/period</span>
+		<span style="color: #888888"># duty cycle = pulse/period</span>
+		<span style="color: #007020">self</span><span style="color: #333333">.</span>pulse <span style="color: #333333">=</span> <span style="color: #007020">self</span><span style="color: #333333">.</span>center_pulse <span style="color: #333333">+</span> stage<span style="color: #333333">*</span><span style="color: #007020">self</span><span style="color: #333333">.</span>pulse_interval
+		period <span style="color: #333333">=</span> <span style="color: #007020">self</span><span style="color: #333333">.</span>base_pulse <span style="color: #333333">+</span> <span style="color: #007020">self</span><span style="color: #333333">.</span>pulse
+
+		<span style="color: #888888"># Notice, the unit is 1ms, so using 1000 instead of 1</span>
+		duty_cycle <span style="color: #333333">=</span> <span style="color: #0000DD; font-weight: bold">10000</span> <span style="color: #333333">*</span> <span style="color: #007020">self</span><span style="color: #333333">.</span>pulse <span style="color: #333333">/</span> period
+		freq <span style="color: #333333">=</span> <span style="color: #0000DD; font-weight: bold">1000</span> <span style="color: #333333">/</span> period
+		<span style="color: #008800; font-weight: bold">return</span> freq, duty_cycle
+
+	<span style="color: #888888"># the speed stage is defined as 21 stages</span>
+	<span style="color: #888888"># the [1, 10] is defined as counter-clockwise</span>
+	<span style="color: #888888"># the [-1, -10] is defined as clockwise</span>
+	<span style="color: #888888"># 0 is stop</span>
+	<span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">change_speed</span>(<span style="color: #007020">self</span>, stage):
+		<span style="color: #888888"># if wrong stage is assigned, change is to 0 for safty.</span>
+		<span style="color: #008800; font-weight: bold">if</span> stage <span style="color: #333333">&gt;</span> <span style="color: #0000DD; font-weight: bold">10</span> <span style="color: #000000; font-weight: bold">or</span> stage <span style="color: #333333">&lt;</span> <span style="color: #333333">-</span><span style="color: #0000DD; font-weight: bold">10</span>:
+			<span style="color: #008800; font-weight: bold">print</span> <span style="background-color: #fff0f0">&quot;Input stage </span><span style="background-color: #eeeeee">%d</span><span style="background-color: #fff0f0">, should be within [-10, 10]&quot;</span><span style="color: #333333">%</span>(stage)
+			stage <span style="color: #333333">=</span> <span style="color: #0000DD; font-weight: bold">0</span>
+		<span style="color: #007020">self</span><span style="color: #333333">.</span>current_stage <span style="color: #333333">=</span> stage
+		frequency, duty_cycle <span style="color: #333333">=</span> <span style="color: #007020">self</span><span style="color: #333333">.</span>get_frequency_dutycycle(<span style="color: #007020">self</span><span style="color: #333333">.</span>current_stage)
+		<span style="color: #007020">self</span><span style="color: #333333">.</span>pwm<span style="color: #333333">.</span>set_PWM_frequency(<span style="color: #007020">self</span><span style="color: #333333">.</span>channel, frequency)
+		<span style="color: #007020">self</span><span style="color: #333333">.</span>pwm<span style="color: #333333">.</span>set_PWM_dutycycle(<span style="color: #007020">self</span><span style="color: #333333">.</span>channel, duty_cycle)
+		<span style="color: #888888"># self.pwm.ChangeDutyCycle(duty_cycle)</span>
+		<span style="color: #888888"># self.pwm.ChangeFrequency(frequency)</span>
+		<span style="color: #888888"># self.pi_hw.hardware_PWM(self.channel, frequency, duty_cycle)</span>
+
+
+<span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">main</span>():
+
+	GPIO<span style="color: #333333">.</span>setmode(GPIO<span style="color: #333333">.</span>BCM)
+	motor <span style="color: #333333">=</span> pwm_motor(<span style="color: #0000DD; font-weight: bold">20</span>)
+	<span style="color: #888888"># motor.change_speed(5)</span>
+	<span style="color: #888888"># time.sleep(1)</span>
+	<span style="color: #888888"># motor.change_speed(-5)</span>
+	<span style="color: #888888"># time.sleep(1)</span>
+	<span style="color: #888888"># motor.change_speed(-10)</span>
+	<span style="color: #888888"># time.sleep(1)</span>
+	<span style="color: #888888"># motor.change_speed(10)</span>
+	<span style="color: #888888"># time.sleep(1)</span>
+	<span style="color: #888888"># motor.change_speed(-10)</span>
+	<span style="color: #888888"># time.sleep(1)</span>
+
+
+	motor<span style="color: #333333">.</span>change_speed(<span style="color: #0000DD; font-weight: bold">0</span>)
+	time<span style="color: #333333">.</span>sleep(<span style="color: #0000DD; font-weight: bold">100</span>)
+
+
+	motor<span style="color: #333333">.</span>stop_motor()
+
+<span style="color: #008800; font-weight: bold">if</span> __name__ <span style="color: #333333">==</span> <span style="background-color: #fff0f0">&#39;__main__&#39;</span>:
+	main()
+</pre></div>
+
+<!-- HTML generated using hilite.me --><div style="background: #ffffff; overflow:auto;width:auto;border:solid gray;border-width:.1em .1em .1em .8em;padding:.2em .6em;"><pre style="margin: 0; line-height: 125%"><span style="color: #888888">###############################################################################</span>
+<span style="color: #888888">#                                                                             #</span>
+<span style="color: #888888"># file:    stop_motors.py                                           		  #</span>
+<span style="color: #888888">#                                                                             #</span>
+<span style="color: #888888"># authors: Zhuo Chen  - zc292                                                 #</span>
+<span style="color: #888888">#          Rui Min - rm877                                                    #</span>
+<span style="color: #888888">#                                                                             #</span>
+<span style="color: #888888"># date:    December 1st 2016                                                  #</span>
+<span style="color: #888888">#                                                                             #</span>
+<span style="color: #888888"># brief:   This code is for ensuring motors will stopped after turning        #</span>
+<span style="color: #888888"># 			of the robot dog            									  # </span>
+<span style="color: #888888">#                                                                             #</span>
+<span style="color: #888888">###############################################################################</span>
+
+
+<span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">motor_control_pigpio</span> <span style="color: #008800; font-weight: bold">import</span> pwm_motor
+<span style="color: #008800; font-weight: bold">import</span> <span style="color: #0e84b5; font-weight: bold">RPi.GPIO</span> <span style="color: #008800; font-weight: bold">as</span> <span style="color: #0e84b5; font-weight: bold">GPIO</span>
+<span style="color: #008800; font-weight: bold">import</span> <span style="color: #0e84b5; font-weight: bold">pigpio</span>
+
+GPIO<span style="color: #333333">.</span>setmode(GPIO<span style="color: #333333">.</span>BCM)
+motor_1 <span style="color: #333333">=</span> pwm_motor(<span style="color: #0000DD; font-weight: bold">20</span>)
+motor_2 <span style="color: #333333">=</span> pwm_motor(<span style="color: #0000DD; font-weight: bold">21</span>)
+motor_1<span style="color: #333333">.</span>change_speed(<span style="color: #0000DD; font-weight: bold">0</span>)
+motor_2<span style="color: #333333">.</span>change_speed(<span style="color: #0000DD; font-weight: bold">0</span>)
+</pre></div>
+
+<!-- HTML generated using hilite.me --><div style="background: #ffffff; overflow:auto;width:auto;border:solid gray;border-width:.1em .1em .1em .8em;padding:.2em .6em;"><pre style="margin: 0; line-height: 125%"><span style="color: #888888">###############################################################################</span>
+<span style="color: #888888">#                                                                             #</span>
+<span style="color: #888888"># file:    wheel.py                                            		  		  #</span>
+<span style="color: #888888">#                                                                             #</span>
+<span style="color: #888888"># authors: Zhuo Chen  - zc292                                                 #</span>
+<span style="color: #888888">#          Rui Min - rm877                                                    #</span>
+<span style="color: #888888">#                                                                             #</span>
+<span style="color: #888888"># date:    December 1st 2016                                                  #</span>
+<span style="color: #888888">#                                                                             #</span>
+<span style="color: #888888"># brief:   wheel class for the system. This class is designed based on the    # </span>
+<span style="color: #888888">#    	   pwm_motor class                                                    #</span>
+<span style="color: #888888">###############################################################################</span>
+
+<span style="color: #008800; font-weight: bold">import</span> <span style="color: #0e84b5; font-weight: bold">RPi.GPIO</span> <span style="color: #008800; font-weight: bold">as</span> <span style="color: #0e84b5; font-weight: bold">GPIO</span>
+<span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">motor_control_pigpio</span> <span style="color: #008800; font-weight: bold">import</span> pwm_motor
+<span style="color: #008800; font-weight: bold">from</span> <span style="color: #0e84b5; font-weight: bold">datetime</span> <span style="color: #008800; font-weight: bold">import</span> datetime
+
+<span style="color: #008800; font-weight: bold">class</span> <span style="color: #BB0066; font-weight: bold">Wheel</span>():
+	<span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">__init__</span> (<span style="color: #007020">self</span>, left_right, channel):
+		<span style="color: #008800; font-weight: bold">if</span> left_right <span style="color: #333333">==</span> <span style="background-color: #fff0f0">&#39;left&#39;</span>:
+			<span style="color: #007020">self</span><span style="color: #333333">.</span>left_right <span style="color: #333333">=</span> <span style="background-color: #fff0f0">&#39;left&#39;</span>
+		<span style="color: #008800; font-weight: bold">else</span>:
+			<span style="color: #007020">self</span><span style="color: #333333">.</span>left_right <span style="color: #333333">=</span> <span style="background-color: #fff0f0">&#39;right&#39;</span>
+
+		<span style="color: #007020">self</span><span style="color: #333333">.</span>channel <span style="color: #333333">=</span> channel
+		<span style="color: #007020">self</span><span style="color: #333333">.</span>state <span style="color: #333333">=</span> <span style="background-color: #fff0f0">&quot;stop&quot;</span>
+		<span style="color: #007020">self</span><span style="color: #333333">.</span>speed <span style="color: #333333">=</span> <span style="color: #0000DD; font-weight: bold">0</span>
+		<span style="color: #007020">self</span><span style="color: #333333">.</span>motor <span style="color: #333333">=</span> pwm_motor(channel <span style="color: #333333">=</span> <span style="color: #007020">self</span><span style="color: #333333">.</span>channel)
+
+	<span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">forward</span>(<span style="color: #007020">self</span>, speed <span style="color: #333333">=</span> <span style="color: #0000DD; font-weight: bold">5</span>):
+		<span style="color: #008800; font-weight: bold">if</span> <span style="color: #007020">self</span><span style="color: #333333">.</span>left_right <span style="color: #333333">==</span> <span style="background-color: #fff0f0">&#39;left&#39;</span>:
+			<span style="color: #007020">self</span><span style="color: #333333">.</span>motor<span style="color: #333333">.</span>change_speed(speed)
+		<span style="color: #008800; font-weight: bold">else</span>:
+			<span style="color: #007020">self</span><span style="color: #333333">.</span>motor<span style="color: #333333">.</span>change_speed(<span style="color: #333333">-</span>speed)
+		<span style="color: #007020">self</span><span style="color: #333333">.</span>state <span style="color: #333333">=</span> <span style="background-color: #fff0f0">&quot;forward&quot;</span>
+		<span style="color: #007020">self</span><span style="color: #333333">.</span>speed <span style="color: #333333">=</span> speed
+</pre></div>
+
+<!-- HTML generated using hilite.me --><div style="background: #ffffff; overflow:auto;width:auto;border:solid gray;border-width:.1em .1em .1em .8em;padding:.2em .6em;"><pre style="margin: 0; line-height: 125%"><span style="color: #888888">#!/bin/bash</span>
+<span style="color: #888888">###############################################################################</span>
+<span style="color: #888888">#                                                                             #</span>
+<span style="color: #888888"># file:    start.sh                                        				      #</span>
+<span style="color: #888888">#                                                                             #</span>
+<span style="color: #888888"># authors: Zhuo Chen  - zc292                                                 #</span>
+<span style="color: #888888">#          Rui Min - rm877                                                    #</span>
+<span style="color: #888888">#                                                                             #</span>
+<span style="color: #888888"># date:    December 1st 2016                                                  #</span>
+<span style="color: #888888">#                                                                             #</span>
+<span style="color: #888888"># brief:   Script for starting all the programs for the system                # </span>
+<span style="color: #888888">#                                                                             #</span>
+<span style="color: #888888">###############################################################################</span>
+sudo pigpiod
+python car.py &amp;
+<span style="color: #007020">echo</span> <span style="background-color: #fff0f0">&#39;Main program started.&#39;</span>
+python face_m_picam.py &amp;
+<span style="color: #007020">echo</span> <span style="background-color: #fff0f0">&#39;Camera started.&#39;</span>
+python hytersis_fre.py &amp;
+<span style="color: #007020">echo</span> <span style="background-color: #fff0f0">&#39;Sound detection started.&#39;</span>
+</pre></div>
+
+<!-- HTML generated using hilite.me --><div style="background: #ffffff; overflow:auto;width:auto;border:solid gray;border-width:.1em .1em .1em .8em;padding:.2em .6em;"><pre style="margin: 0; line-height: 125%"><span style="color: #888888">#!/bin/bash</span>
+<span style="color: #888888">###############################################################################</span>
+<span style="color: #888888">#                                                                             #</span>
+<span style="color: #888888"># file:    start.sh                                        				      #</span>
+<span style="color: #888888">#                                                                             #</span>
+<span style="color: #888888"># authors: Zhuo Chen  - zc292                                                 #</span>
+<span style="color: #888888">#          Rui Min - rm877                                                    #</span>
+<span style="color: #888888">#                                                                             #</span>
+<span style="color: #888888"># date:    December 1st 2016                                                  #</span>
+<span style="color: #888888">#                                                                             #</span>
+<span style="color: #888888"># brief:   Script for starting all the programs for the system                # </span>
+<span style="color: #888888">#                                                                             #</span>
+<span style="color: #888888">###############################################################################</span>
+ps -aelf |grep face_m_picam.py | grep -v grep | awk <span style="background-color: #fff0f0">&#39;{print $4}&#39;</span> | xargs <span style="color: #007020">kill</span> -9;
+ps -aelf |grep face_m_picam.py | grep -v grep | awk <span style="background-color: #fff0f0">&#39;{print $4}&#39;</span> | xargs <span style="color: #007020">kill</span> -9;
+ps -aelf | grep car.py | grep -v grep | awk <span style="background-color: #fff0f0">&#39;{print $4}&#39;</span> | xargs <span style="color: #007020">kill</span> -9;
+ps -aelf | grep hytersis_fre.py | grep -v grep | awk <span style="background-color: #fff0f0">&#39;{print $4}&#39;</span> | xargs <span style="color: #007020">kill</span> -9;
+python stop_motors.py
+</pre></div>
+
+
+						</div>
+					</div>
+					
+					<div class="yui-gf">
+						<div class="yui-u first">
+							<h2>Thanks</h2>
+						</div>
+						<div class="yui-u">
+						<p>We'd like to thank our professor Joseph Skovira for his advice and help not only in class but also in everyday life. And We also want to thank our TAs, Jingyao Ren and Jay Fetter. </p>
+						</div>
+					</div>
+
+					<div class="yui-gf">
+						<div class="yui-u first">
+							<h2>Contact</h2>
+						</div>
+						<div class="yui-u">
+						<p> Zhuo Chen zc292@cornell.edu<br>
+							Rui Min rm877@cornell.edu<br>
+						</p>
+						</div>
+					</div>
+<!-- 					</div> -->
+
+				</div><!--// .yui-b -->
+			</div><!--// yui-main -->
+		</div><!--// bd -->
+
+		<div id="ft">
+			<p><a href="http://validator.w3.org/check?uri=referer"><img src=
+			"images/w3chatered.gif" title="W3C+Hates+Me" alt="W3C+Hates+Me"
+			width="80" height="15" /></a>
+			<a href="http://jigsaw.w3.org/css-validator/check/referer"><img src=
+			"images/css_copy.gif" title="Valid+CSS%21" alt="Valid+CSS%21"
+			width="80" height="15" /></a>
+			<img src="images/code.gif" title="Handcrafted with sweat and blood" alt="Handcrafted with sweat and blood" width="80" height="15" />
+			<img src="images/anybrowser.gif" title="Run Any Browser Any OS" alt="Runs on Any Browser Any OS" width="80" height="15" /></p>
+			<br />
+		</div><!--// footer -->
+
+	</div><!-- // inner -->
+</div><!--// doc -->
+</body>
+</html>
